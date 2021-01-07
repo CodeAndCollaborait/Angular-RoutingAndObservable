@@ -1,5 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, interval } from 'rxjs';
+import {
+  ReactiveFormsModule,
+  FormGroup,
+  FormControl,
+  Validators,
+  FormBuilder,
+} from '@angular/forms';
+import { map, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-about-observable',
@@ -7,21 +14,32 @@ import { Observable, interval } from 'rxjs';
   styleUrls: ['./about-observable.component.css'],
 })
 export class AboutObservableComponent implements OnInit {
-  demoObserve = new Observable((numbers) => {
-    numbers.next('11');
-    numbers.next('22');
-    numbers.next('33');
-    numbers.complete();
-  });
+  form: FormGroup;
+  comment = new FormControl('', Validators.required);
+  name = new FormControl('', Validators.required);
+  email = new FormControl('', [
+    Validators.required,
+    Validators.pattern('[^ @]*@[^ @]*'),
+  ]);
 
-  constructor() {}
-
-  ngOnInit(): void {
-
-    //Call the observable 
-    this.demoObserve.subscribe((num) => {
-      console.log(num);
+  constructor(fb: FormBuilder) {
+    this.form = fb.group({
+      comment: this.comment,
+      name: this.name,
+      email: this.email,
     });
-  
+    this.form.valueChanges.subscribe((data) => {
+      if (this.form.valid) {
+        data.comment = data.comment.replace(/<(?:.|\n)*?>/gm, '');
+        data.lastUpdateTS = new Date();
+        console.log(JSON.stringify(data));
+      }
+    });
   }
+
+  onSubmit() {
+    console.log('Form is valid and submitted');
+  }
+
+  ngOnInit(): void {}
 }
